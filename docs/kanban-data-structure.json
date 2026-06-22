@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "id": "user-1",
+      "username": "user",
+      "password_hash": "<hash>",
+      "created_at": "2026-05-20T00:00:00Z"
+    }
+  ],
+  "boards": [
+    {
+      "id": "board-1",
+      "user_id": "user-1",
+      "title": "Default Board",
+      "created_at": "2026-05-20T00:00:00Z"
+    }
+  ],
+  "columns": [
+    {
+      "id": "col-backlog",
+      "board_id": "board-1",
+      "title": "Backlog",
+      "position": 0
+    },
+    {
+      "id": "col-discovery",
+      "board_id": "board-1",
+      "title": "Discovery",
+      "position": 1
+    },
+    {
+      "id": "col-progress",
+      "board_id": "board-1",
+      "title": "In Progress",
+      "position": 2
+    },
+    {
+      "id": "col-review",
+      "board_id": "board-1",
+      "title": "Review",
+      "position": 3
+    },
+    {
+      "id": "col-done",
+      "board_id": "board-1",
+      "title": "Done",
+      "position": 4
+    }
+  ],
+  "cards": [
+    {
+      "id": "card-1",
+      "board_id": "board-1",
+      "column_id": "col-backlog",
+      "title": "Align roadmap themes",
+      "details": "Draft quarterly themes with impact statements and metrics.",
+      "position": 0,
+      "created_at": "2026-05-20T00:00:00Z",
+      "updated_at": "2026-05-20T00:00:00Z"
+    }
+  ]
+}

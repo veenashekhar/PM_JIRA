@@ -1,0 +1,73 @@
+import { expect, test } from "@playwright/test";
+
+const login = async (page: Parameters<typeof test>[0]["page"]) => {
+  await page.getByLabel("Username").fill("user");
+  await page.getByLabel("Password").fill("password");
+  await page.getByRole("button", { name: /sign in/i }).click();
+};
+
+test("loads the kanban board", async ({ page }) => {
+  await page.goto("/");
+  await login(page);
+  await expect(page.getByRole("heading", { name: "Kanban Studio" })).toBeVisible();
+  await expect(page.locator('[data-testid^="column-"]')).toHaveCount(5);
+});
+
+test("adds a card to a column", async ({ page }) => {
+  await page.goto("/");
+  await login(page);
+  const firstColumn = page.locator('[data-testid^="column-"]').first();
+  await firstColumn.getByRole("button", { name: /add a card/i }).click();
+  await firstColumn.getByPlaceholder("Card title").fill("Playwright card");
+  await firstColumn.getByPlaceholder("Details").fill("Added via e2e.");
+  await firstColumn.getByRole("button", { name: /add card/i }).click();
+  await expect(firstColumn.getByText("Playwright card")).toBeVisible();
+});
+
+test("moves a card between columns", async ({ page }) => {
+  await page.goto("/");
+  await login(page);
+  const card = page.getByTestId("card-card-1");
+  const targetColumn = page.getByTestId("column-col-review");
+  const cardBox = await card.boundingBox();
+  const columnBox = await targetColumn.boundingBox();
+  if (!cardBox || !columnBox) {
+    throw new Error("Unable to resolve drag coordinates.");
+  }
+
+  await page.mouse.move(
+    cardBox.x + cardBox.width / 2,
+    cardBox.y + cardBox.height / 2
+  );
+  await page.mouse.down();
+  await page.mouse.move(
+    columnBox.x + columnBox.width / 2,
+    columnBox.y + 120,
+    { steps: 12 }
+  );
+  await page.mouse.up();
+  await expect(targetColumn.getByTestId("card-card-1")).toBeVisible();
+});
+
+test("sends chat and applies board update", async ({ page }) => {
+  await page.route("**/api/ai/kanban", async (route) => {
+    const current = await page.request.get("/api/kanban/user");
+    const board = await current.json();
+    board.columns[0].title = "Inbox";
+
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ response: "Updated the board.", board }),
+    });
+  });
+
+  await page.goto("/");
+  await login(page);
+
+  await page.getByLabel(/chat message/i).fill("Rename backlog");
+  await page.getByRole("button", { name: /send/i }).click();
+
+  await expect(page.getByText("Updated the board.")).toBeVisible();
+  await expect(page.getByDisplayValue("Inbox")).toBeVisible();
+});
